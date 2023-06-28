@@ -70,7 +70,7 @@ func checkCoefficient(coef uint16, name string) error {
 
 // waitForCompletion Wait until sensor completes measurements and calculations,
 // otherwise return on timeout.
-func waitForCompletion(sensor SensorInterface, i2c *i2c.I2C) (timeout bool, err error) {
+func waitForCompletion(sensor SensorInterface, i2c *i2c.Options) (timeout bool, err error) {
 	for i := 0; i < 10; i++ {
 		flag, err := sensor.IsBusy(i2c)
 		if err != nil {
@@ -85,7 +85,7 @@ func waitForCompletion(sensor SensorInterface, i2c *i2c.I2C) (timeout bool, err 
 }
 
 // Read byte block from i2c device to struct object.
-func readDataToStruct(i2c *i2c.I2C, byteCount int,
+func readDataToStruct(i2c *i2c.Options, byteCount int,
 	byteOrder binary.ByteOrder, obj interface{}) error {
 	buf1 := make([]byte, byteCount)
 	_, err := i2c.ReadBytes(buf1)

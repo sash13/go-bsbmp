@@ -175,7 +175,7 @@ var _ SensorInterface = &SensorBME280{}
 
 // ReadSensorID reads sensor signature. It may be used for validation,
 // that proper code settings used for sensor data decoding.
-func (v *SensorBME280) ReadSensorID(i2c *i2c.I2C) (uint8, error) {
+func (v *SensorBME280) ReadSensorID(i2c *i2c.Options) (uint8, error) {
 	id, err := i2c.ReadRegU8(BME280_ID_REG)
 	if err != nil {
 		return 0, err
@@ -184,7 +184,7 @@ func (v *SensorBME280) ReadSensorID(i2c *i2c.I2C) (uint8, error) {
 }
 
 // ReadCoefficients reads compensation coefficients, unique for each sensor.
-func (v *SensorBME280) ReadCoefficients(i2c *i2c.I2C) error {
+func (v *SensorBME280) ReadCoefficients(i2c *i2c.Options) error {
 	// read coefficients #1
 	_, err := i2c.WriteBytes([]byte{BME280_COEF_PART1_START})
 	if err != nil {
@@ -307,7 +307,7 @@ func (v *SensorBME280) RecognizeSignature(signature uint8) (string, error) {
 
 // IsBusy reads register 0xF3 for "busy" flag,
 // according to sensor specification.
-func (v *SensorBME280) IsBusy(i2c *i2c.I2C) (busy bool, err error) {
+func (v *SensorBME280) IsBusy(i2c *i2c.Options) (busy bool, err error) {
 	// Check flag to know status of calculation, according
 	// to specification about SCO (Start of conversion) flag
 	b, err := i2c.ReadRegU8(BME280_STATUS)
@@ -340,7 +340,7 @@ func (v *SensorBME280) getOversamplingRation(accuracy AccuracyMode) byte {
 }
 
 // readUncompTemprature reads uncompensated temprature from sensor.
-func (v *SensorBME280) readUncompTemprature(i2c *i2c.I2C, accuracy AccuracyMode) (int32, error) {
+func (v *SensorBME280) readUncompTemprature(i2c *i2c.Options, accuracy AccuracyMode) (int32, error) {
 	var power byte = 1 // Forced mode
 	osrt := v.getOversamplingRation(accuracy)
 	err := i2c.WriteRegU8(BME280_CTRL_MEAS, power|(osrt<<5))
@@ -360,7 +360,7 @@ func (v *SensorBME280) readUncompTemprature(i2c *i2c.I2C, accuracy AccuracyMode)
 }
 
 // readUncompPressure reads uncompensated atmospheric pressure from sensor.
-func (v *SensorBME280) readUncompPressure(i2c *i2c.I2C, accuracy AccuracyMode) (int32, error) {
+func (v *SensorBME280) readUncompPressure(i2c *i2c.Options, accuracy AccuracyMode) (int32, error) {
 	var power byte = 1 // Forced mode
 	osrp := v.getOversamplingRation(accuracy)
 	err := i2c.WriteRegU8(BME280_CTRL_MEAS, power|(osrp<<2))
@@ -380,7 +380,7 @@ func (v *SensorBME280) readUncompPressure(i2c *i2c.I2C, accuracy AccuracyMode) (
 }
 
 // readUncompHumidity reads uncompensated humidity from sensor.
-func (v *SensorBME280) readUncompHumidity(i2c *i2c.I2C, accuracy AccuracyMode) (int32, error) {
+func (v *SensorBME280) readUncompHumidity(i2c *i2c.Options, accuracy AccuracyMode) (int32, error) {
 	var power byte = 1 // Forced mode
 	osrt := v.getOversamplingRation(accuracy)
 	err := i2c.WriteRegU8(BME280_CTRL_MEAS, power|(osrt<<5))
@@ -412,7 +412,7 @@ func (v *SensorBME280) readUncompHumidity(i2c *i2c.I2C, accuracy AccuracyMode) (
 // atmospheric uncompensated pressure from sensor.
 // BME280 allows to read temprature and pressure in one cycle,
 // BMP180 - doesn't.
-func (v *SensorBME280) readUncompTempratureAndPressure(i2c *i2c.I2C,
+func (v *SensorBME280) readUncompTempratureAndPressure(i2c *i2c.Options,
 	accuracy AccuracyMode) (temprature int32, pressure int32, err error) {
 	var power byte = 1 // Forced mode
 	osrt := v.getOversamplingRation(ACCURACY_STANDARD)
@@ -440,7 +440,7 @@ func (v *SensorBME280) readUncompTempratureAndPressure(i2c *i2c.I2C,
 
 // ReadTemperatureMult100C reads and calculates temrature in C (celsius) multiplied by 100.
 // Multiplication approach allow to keep result as integer number.
-func (v *SensorBME280) ReadTemperatureMult100C(i2c *i2c.I2C, accuracy AccuracyMode) (int32, error) {
+func (v *SensorBME280) ReadTemperatureMult100C(i2c *i2c.Options, accuracy AccuracyMode) (int32, error) {
 	ut, err := v.readUncompTemprature(i2c, accuracy)
 	if err != nil {
 		return 0, err
@@ -463,7 +463,7 @@ func (v *SensorBME280) ReadTemperatureMult100C(i2c *i2c.I2C, accuracy AccuracyMo
 
 // ReadPressureMult10Pa reads and calculates atmospheric pressure in Pa (Pascal) multiplied by 10.
 // Multiplication approach allow to keep result as integer number.
-func (v *SensorBME280) ReadPressureMult10Pa(i2c *i2c.I2C, accuracy AccuracyMode) (uint32, error) {
+func (v *SensorBME280) ReadPressureMult10Pa(i2c *i2c.Options, accuracy AccuracyMode) (uint32, error) {
 	ut, up, err := v.readUncompTempratureAndPressure(i2c, accuracy)
 	if err != nil {
 		return 0, err
@@ -509,7 +509,7 @@ func (v *SensorBME280) ReadPressureMult10Pa(i2c *i2c.I2C, accuracy AccuracyMode)
 // ReadHumidityMultQ2210 reads and calculate humidity in %RH.
 // Multiplication approach allow to keep result as integer number.
 // To get real value it's necessary to divide result by 1024.
-func (v *SensorBME280) ReadHumidityMultQ2210(i2c *i2c.I2C,
+func (v *SensorBME280) ReadHumidityMultQ2210(i2c *i2c.Options,
 	accuracy AccuracyMode) (supported bool, humidity uint32, erro error) {
 
 	ut, err := v.readUncompTemprature(i2c, accuracy)
