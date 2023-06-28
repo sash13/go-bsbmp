@@ -231,7 +231,7 @@ func (v *SensorBMP180) IsBusy(i2c *i2c.Options) (busy bool, err error) {
 		return false, err
 	}
 	b = b & 0x20
-	lg.Debugf("Busy flag=0x%0X", b)
+	//lg.Debugf("Busy flag=0x%0X", b)
 	return b != 0, nil
 }
 
@@ -273,7 +273,7 @@ func (v *SensorBMP180) getOversamplingRation(accuracy AccuracyMode) byte {
 // readUncompPressure reads atmospheric uncompensated pressure from sensor.
 func (v *SensorBMP180) readUncompPressure(i2c *i2c.Options, accuracy AccuracyMode) (int32, error) {
 	oss := v.getOversamplingRation(accuracy)
-	lg.Debugf("oss=%v", oss)
+	//lg.Debugf("oss=%v", oss)
 	err := i2c.WriteRegU8(BMP180_CNTR_MEAS_REG, 0x34+(oss<<6))
 	if err != nil {
 		return 0, err
@@ -303,13 +303,13 @@ func (v *SensorBMP180) ReadTemperatureMult100C(i2c *i2c.Options, mode AccuracyMo
 	}
 	// Calculate temperature according to sensor specification
 	x1 := ((ut - int32(v.Coeff.dig_AC6())) * int32(v.Coeff.dig_AC5())) >> 15
-	lg.Debugf("x1=%v", x1)
+	//lg.Debugf("x1=%v", x1)
 	x2 := (int32(v.Coeff.dig_MC()) << 11) / (x1 + int32(v.Coeff.dig_MD()))
-	lg.Debugf("x2=%v", x2)
+	//lg.Debugf("x2=%v", x2)
 	b5 := x1 + x2
-	lg.Debugf("b5=%v", b5)
+	//lg.Debugf("b5=%v", b5)
 	t := ((b5 + 8) >> 4) * 10
-	lg.Debugf("t=%v", t)
+	//lg.Debugf("t=%v", t)
 	return t, nil
 }
 
@@ -321,13 +321,13 @@ func (v *SensorBMP180) ReadPressureMult10Pa(i2c *i2c.Options, accuracy AccuracyM
 	if err != nil {
 		return 0, err
 	}
-	lg.Debugf("ut=%v", ut)
+	//lg.Debugf("ut=%v", ut)
 
 	up, err := v.readUncompPressure(i2c, accuracy)
 	if err != nil {
 		return 0, err
 	}
-	lg.Debugf("up=%v", up)
+	//lg.Debugf("up=%v", up)
 
 	err = v.ReadCoefficients(i2c)
 	if err != nil {
@@ -336,46 +336,46 @@ func (v *SensorBMP180) ReadPressureMult10Pa(i2c *i2c.Options, accuracy AccuracyM
 
 	// Calculate pressure according to sensor specification
 	x1 := ((ut - int32(v.Coeff.dig_AC6())) * int32(v.Coeff.dig_AC5())) >> 15
-	lg.Debugf("x1=%v", x1)
+	//lg.Debugf("x1=%v", x1)
 	x2 := (int32(v.Coeff.dig_MC()) << 11) / (x1 + int32(v.Coeff.dig_MD()))
-	lg.Debugf("x2=%v", x2)
+	//lg.Debugf("x2=%v", x2)
 	b5 := x1 + x2
-	lg.Debugf("b5=%v", b5)
+	//lg.Debugf("b5=%v", b5)
 	b6 := b5 - 4000
-	lg.Debugf("b6=%v", b6)
+	//lg.Debugf("b6=%v", b6)
 	x1 = (int32(v.Coeff.dig_B2()) * ((b6 * b6) >> 12)) >> 11
-	lg.Debugf("x1=%v", x1)
+	//lg.Debugf("x1=%v", x1)
 	x2 = (int32(v.Coeff.dig_AC2()) * b6) >> 11
-	lg.Debugf("x2=%v", x2)
+	//lg.Debugf("x2=%v", x2)
 	x3 := x1 + x2
-	lg.Debugf("x3=%v", x3)
+	//lg.Debugf("x3=%v", x3)
 	b3 := (((int32(v.Coeff.dig_AC1())*4 + x3) << uint32(oss)) + 2) / 4
-	lg.Debugf("b3=%v", b3)
+	//lg.Debugf("b3=%v", b3)
 	x1 = (int32(v.Coeff.dig_AC3()) * b6) >> 13
-	lg.Debugf("x1=%v", x1)
+	//lg.Debugf("x1=%v", x1)
 	x2 = ((int32(v.Coeff.dig_B1()) * (b6 * b6)) >> 12) >> 16
-	lg.Debugf("x2=%v", x2)
+	//lg.Debugf("x2=%v", x2)
 	x3 = ((x1 + x2) + 2) >> 2
-	lg.Debugf("x3=%v", x3)
+	//lg.Debugf("x3=%v", x3)
 	b4 := (uint32(v.Coeff.dig_AC4()) * uint32(x3+32768)) >> 15
-	lg.Debugf("b4=%v", b4)
+	//lg.Debugf("b4=%v", b4)
 	b7 := (uint32(up) - uint32(b3)) * (50000 >> uint32(oss))
-	lg.Debugf("b7=%v", b7)
+	//lg.Debugf("b7=%v", b7)
 	var p1 int32
 	if b7 < 0x80000000 {
 		p1 = int32((b7 * 2) / b4)
 	} else {
 		p1 = int32((b7 / b4) * 2)
 	}
-	lg.Debugf("p=%v", p1)
+	//lg.Debugf("p=%v", p1)
 	x1 = (p1 >> 8) * (p1 >> 8)
-	lg.Debugf("x1=%v", x1)
+	//lg.Debugf("x1=%v", x1)
 	x1 = (x1 * 3038) >> 16
-	lg.Debugf("x1=%v", x1)
+	//lg.Debugf("x1=%v", x1)
 	x2 = (-7357 * p1) >> 16
-	lg.Debugf("x2=%v", x2)
+	//lg.Debugf("x2=%v", x2)
 	p1 += (x1 + x2 + 3791) >> 4
-	lg.Debugf("p=%v", p1)
+	//lg.Debugf("p=%v", p1)
 	p := uint32(p1) * 10
 	return p, nil
 }

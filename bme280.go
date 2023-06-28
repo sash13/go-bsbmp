@@ -315,7 +315,7 @@ func (v *SensorBME280) IsBusy(i2c *i2c.Options) (busy bool, err error) {
 		return false, err
 	}
 	b = b & 0x8
-	lg.Debugf("Busy flag=0x%0X", b)
+	//lg.Debugf("Busy flag=0x%0X", b)
 	return b != 0, nil
 }
 
@@ -451,12 +451,12 @@ func (v *SensorBME280) ReadTemperatureMult100C(i2c *i2c.Options, accuracy Accura
 	}
 
 	var1 := ((ut>>3 - int32(v.Coeff.dig_T1())<<1) * int32(v.Coeff.dig_T2())) >> 11
-	lg.Debugf("var1=%v", var1)
+	//lg.Debugf("var1=%v", var1)
 	var2 := (((ut>>4 - int32(v.Coeff.dig_T1())) * (ut>>4 - int32(v.Coeff.dig_T1()))) >> 12 *
 		int32(v.Coeff.dig_T3())) >> 14
-	lg.Debugf("var1=%v", var2)
+	//lg.Debugf("var1=%v", var2)
 	tFine := var1 + var2
-	lg.Debugf("t_fine=%v", tFine)
+	//lg.Debugf("t_fine=%v", tFine)
 	t := (tFine*5 + 128) >> 8
 	return t, nil
 }
@@ -468,7 +468,7 @@ func (v *SensorBME280) ReadPressureMult10Pa(i2c *i2c.Options, accuracy AccuracyM
 	if err != nil {
 		return 0, err
 	}
-	lg.Debugf("ut=%v, up=%v", ut, up)
+	//lg.Debugf("ut=%v, up=%v", ut, up)
 
 	err = v.ReadCoefficients(i2c)
 	if err != nil {
@@ -476,22 +476,22 @@ func (v *SensorBME280) ReadPressureMult10Pa(i2c *i2c.Options, accuracy AccuracyM
 	}
 
 	var01 := ((ut>>3 - int32(v.Coeff.dig_T1())<<1) * int32(v.Coeff.dig_T2())) >> 11
-	lg.Debugf("var01=%v", var01)
+	//lg.Debugf("var01=%v", var01)
 	var02 := (((ut>>4 - int32(v.Coeff.dig_T1())) * (ut>>4 - int32(v.Coeff.dig_T1()))) >> 12 *
 		int32(v.Coeff.dig_T3())) >> 14
-	lg.Debugf("var01=%v", var02)
+	//lg.Debugf("var01=%v", var02)
 	tFine := var01 + var02
 
 	var1 := int64(tFine) - 128000
-	lg.Debugf("var1=%v", var1)
+	//lg.Debugf("var1=%v", var1)
 	var2 := var1 * var1 * int64(v.Coeff.dig_P6())
-	lg.Debugf("var2=%v", var2)
+	//lg.Debugf("var2=%v", var2)
 	var2 += (var1 * int64(v.Coeff.dig_P5())) << 17
 	var2 += int64(v.Coeff.dig_P4()) << 35
-	lg.Debugf("var2=%v", var2)
+	//lg.Debugf("var2=%v", var2)
 	var1 = (var1*var1*int64(v.Coeff.dig_P3()))>>8 + (var1*int64(v.Coeff.dig_P2()))<<12
 	var1 = ((int64(1)<<47 + var1) * int64(v.Coeff.dig_P1())) >> 33
-	lg.Debugf("var1=%v", var1)
+	//lg.Debugf("var1=%v", var1)
 	if var1 == 0 {
 		return 0, nil
 	}
@@ -520,19 +520,19 @@ func (v *SensorBME280) ReadHumidityMultQ2210(i2c *i2c.Options,
 	if err != nil {
 		return true, 0, err
 	}
-	lg.Debugf("ut=%v, uh=%v", ut, uh)
+	//lg.Debugf("ut=%v, uh=%v", ut, uh)
 	err = v.ReadCoefficients(i2c)
 	if err != nil {
 		return true, 0, err
 	}
 
 	var01 := ((ut>>3 - int32(v.Coeff.dig_T1())<<1) * int32(v.Coeff.dig_T2())) >> 11
-	lg.Debugf("var01=%v", var01)
+	//lg.Debugf("var01=%v", var01)
 	var02 := (((ut>>4 - int32(v.Coeff.dig_T1())) * (ut>>4 - int32(v.Coeff.dig_T1()))) >> 12 *
 		int32(v.Coeff.dig_T3())) >> 14
-	lg.Debugf("var01=%v", var02)
+	//lg.Debugf("var01=%v", var02)
 	tFine := var01 + var02
-	lg.Debugf("t_fine=%v", tFine)
+	//lg.Debugf("t_fine=%v", tFine)
 
 	// Alternative version of humidity calculation from raw value
 	// based on float ariphmetics.
@@ -553,25 +553,25 @@ func (v *SensorBME280) ReadHumidityMultQ2210(i2c *i2c.Options,
 
 	var v_x1 int32
 	v_x1 = tFine - 76800
-	lg.Debugf("v_x1=%v", v_x1)
+	//lg.Debugf("v_x1=%v", v_x1)
 
 	v_x1 = ((((uh << 14) - (int32(v.Coeff.dig_H4()) << 20) - (int32(v.Coeff.dig_H5()) * v_x1)) +
 		16384) >> 15) * (((((((v_x1*int32(v.Coeff.dig_H6()))>>10)*(((v_x1*
 		int32(v.Coeff.dig_H3()))>>11)+32768))>>10)+2097152)*
 		int32(v.Coeff.dig_H2()) + 8192) >> 14)
 
-	lg.Debugf("v_x1=%v", v_x1)
+	//lg.Debugf("v_x1=%v", v_x1)
 
 	v_x1 = v_x1 - (((((v_x1 >> 15) * (v_x1 >> 15)) >> 7) * int32(v.Coeff.dig_H1())) >> 4)
-	lg.Debugf("v_x1=%v", v_x1)
+	//lg.Debugf("v_x1=%v", v_x1)
 
 	if v_x1 < 0 {
 		v_x1 = 0
 	} else if v_x1 > 419430400 {
 		v_x1 = 419430400
 	}
-	lg.Debugf("v_x1=%v", v_x1)
+	//lg.Debugf("v_x1=%v", v_x1)
 	v_x1 = v_x1 >> 12
-	lg.Debugf("v_x1=%v", v_x1)
+	//lg.Debugf("v_x1=%v", v_x1)
 	return true, uint32(v_x1), nil
 }

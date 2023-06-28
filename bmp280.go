@@ -246,7 +246,7 @@ func (v *SensorBMP280) IsBusy(i2c *i2c.Options) (busy bool, err error) {
 		return false, err
 	}
 	b = b & 0x8
-	lg.Debugf("Busy flag=0x%0X", b)
+	//lg.Debugf("Busy flag=0x%0X", b)
 	return b != 0, nil
 }
 
@@ -353,12 +353,12 @@ func (v *SensorBMP280) ReadTemperatureMult100C(i2c *i2c.Options, accuracy Accura
 	}
 
 	var1 := ((ut>>3 - int32(v.Coeff.dig_T1())<<1) * int32(v.Coeff.dig_T2())) >> 11
-	lg.Debugf("var1=%v", var1)
+	//lg.Debugf("var1=%v", var1)
 	var2 := (((ut>>4 - int32(v.Coeff.dig_T1())) * (ut>>4 - int32(v.Coeff.dig_T1()))) >> 12 *
 		int32(v.Coeff.dig_T3())) >> 14
-	lg.Debugf("var1=%v", var2)
+	//lg.Debugf("var1=%v", var2)
 	tFine := var1 + var2
-	lg.Debugf("t_fine=%v", tFine)
+	//lg.Debugf("t_fine=%v", tFine)
 	t := (tFine*5 + 128) >> 8
 	return t, nil
 }
@@ -370,7 +370,7 @@ func (v *SensorBMP280) ReadPressureMult10Pa(i2c *i2c.Options, accuracy AccuracyM
 	if err != nil {
 		return 0, err
 	}
-	lg.Debugf("ut=%v, up=%v", ut, up)
+	//lg.Debugf("ut=%v, up=%v", ut, up)
 
 	err = v.ReadCoefficients(i2c)
 	if err != nil {
@@ -378,22 +378,22 @@ func (v *SensorBMP280) ReadPressureMult10Pa(i2c *i2c.Options, accuracy AccuracyM
 	}
 
 	var01 := ((ut>>3 - int32(v.Coeff.dig_T1())<<1) * int32(v.Coeff.dig_T2())) >> 11
-	lg.Debugf("var01=%v", var01)
+	//lg.Debugf("var01=%v", var01)
 	var02 := (((ut>>4 - int32(v.Coeff.dig_T1())) * (ut>>4 - int32(v.Coeff.dig_T1()))) >> 12 *
 		int32(v.Coeff.dig_T3())) >> 14
-	lg.Debugf("var01=%v", var02)
+	//lg.Debugf("var01=%v", var02)
 	tFine := var01 + var02
 
 	var1 := int64(tFine) - 128000
-	lg.Debugf("var1=%v", var1)
+	//lg.Debugf("var1=%v", var1)
 	var2 := var1 * var1 * int64(v.Coeff.dig_P6())
-	lg.Debugf("var2=%v", var2)
+	//lg.Debugf("var2=%v", var2)
 	var2 += (var1 * int64(v.Coeff.dig_P5())) << 17
 	var2 += int64(v.Coeff.dig_P4()) << 35
-	lg.Debugf("var2=%v", var2)
+	//lg.Debugf("var2=%v", var2)
 	var1 = (var1*var1*int64(v.Coeff.dig_P3()))>>8 + (var1*int64(v.Coeff.dig_P2()))<<12
 	var1 = ((int64(1)<<47 + var1) * int64(v.Coeff.dig_P1())) >> 33
-	lg.Debugf("var1=%v", var1)
+	//lg.Debugf("var1=%v", var1)
 	if var1 == 0 {
 		return 0, nil
 	}
