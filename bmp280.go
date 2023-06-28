@@ -134,7 +134,7 @@ var _ SensorInterface = &SensorBMP280{}
 
 // ReadSensorID reads sensor signature. It may be used for validation,
 // that proper code settings used for sensor data decoding.
-func (v *SensorBMP280) ReadSensorID(i2c *i2c.I2C) (uint8, error) {
+func (v *SensorBMP280) ReadSensorID(i2c *i2c.Options) (uint8, error) {
 	id, err := i2c.ReadRegU8(BMP280_ID_REG)
 	if err != nil {
 		return 0, err
@@ -143,7 +143,7 @@ func (v *SensorBMP280) ReadSensorID(i2c *i2c.I2C) (uint8, error) {
 }
 
 // ReadCoefficients reads compensation coefficients, unique for each sensor.
-func (v *SensorBMP280) ReadCoefficients(i2c *i2c.I2C) error {
+func (v *SensorBMP280) ReadCoefficients(i2c *i2c.Options) error {
 	_, err := i2c.WriteBytes([]byte{BMP280_COEF_START})
 	if err != nil {
 		return err
@@ -238,7 +238,7 @@ func (v *SensorBMP280) RecognizeSignature(signature uint8) (string, error) {
 
 // IsBusy reads register 0xF3 for "busy" flag,
 // according to sensor specification.
-func (v *SensorBMP280) IsBusy(i2c *i2c.I2C) (busy bool, err error) {
+func (v *SensorBMP280) IsBusy(i2c *i2c.Options) (busy bool, err error) {
 	// Check flag to know status of calculation, according
 	// to specification about SCO (Start of conversion) flag
 	b, err := i2c.ReadRegU8(BMP280_STATUS_REG)
@@ -271,7 +271,7 @@ func (v *SensorBMP280) getOversamplingRation(accuracy AccuracyMode) byte {
 }
 
 // readUncompTemprature reads uncompensated temprature from sensor.
-func (v *SensorBMP280) readUncompTemprature(i2c *i2c.I2C, accuracy AccuracyMode) (int32, error) {
+func (v *SensorBMP280) readUncompTemprature(i2c *i2c.Options, accuracy AccuracyMode) (int32, error) {
 	var power byte = 1 // Forced mode
 	osrt := v.getOversamplingRation(accuracy)
 	err := i2c.WriteRegU8(BMP280_CNTR_MEAS_REG, power|(osrt<<5))
@@ -291,7 +291,7 @@ func (v *SensorBMP280) readUncompTemprature(i2c *i2c.I2C, accuracy AccuracyMode)
 }
 
 // readUncompPressure reads atmospheric uncompensated pressure from sensor.
-func (v *SensorBMP280) readUncompPressure(i2c *i2c.I2C, accuracy AccuracyMode) (int32, error) {
+func (v *SensorBMP280) readUncompPressure(i2c *i2c.Options, accuracy AccuracyMode) (int32, error) {
 	var power byte = 1 // Forced mode
 	osrp := v.getOversamplingRation(accuracy)
 	err := i2c.WriteRegU8(BMP280_CNTR_MEAS_REG, power|(osrp<<2))
@@ -314,7 +314,7 @@ func (v *SensorBMP280) readUncompPressure(i2c *i2c.I2C, accuracy AccuracyMode) (
 // atmospheric uncompensated pressure from sensor.
 // BMP280 allows to read temprature and pressure in one cycle,
 // BMP180 - doesn't.
-func (v *SensorBMP280) readUncompTempratureAndPressure(i2c *i2c.I2C,
+func (v *SensorBMP280) readUncompTempratureAndPressure(i2c *i2c.Options,
 	accuracy AccuracyMode) (temprature int32, pressure int32, err error) {
 	var power byte = 1 // Forced mode
 	osrt := v.getOversamplingRation(ACCURACY_STANDARD)
@@ -342,7 +342,7 @@ func (v *SensorBMP280) readUncompTempratureAndPressure(i2c *i2c.I2C,
 
 // ReadTemperatureMult100C reads and calculates temrature in C (celsius) multiplied by 100.
 // Multiplication approach allow to keep result as integer number.
-func (v *SensorBMP280) ReadTemperatureMult100C(i2c *i2c.I2C, accuracy AccuracyMode) (int32, error) {
+func (v *SensorBMP280) ReadTemperatureMult100C(i2c *i2c.Options, accuracy AccuracyMode) (int32, error) {
 	ut, err := v.readUncompTemprature(i2c, accuracy)
 	if err != nil {
 		return 0, err
@@ -365,7 +365,7 @@ func (v *SensorBMP280) ReadTemperatureMult100C(i2c *i2c.I2C, accuracy AccuracyMo
 
 // ReadPressureMult10Pa reads and calculates atmospheric pressure in Pa (Pascal) multiplied by 10.
 // Multiplication approach allow to keep result as integer number.
-func (v *SensorBMP280) ReadPressureMult10Pa(i2c *i2c.I2C, accuracy AccuracyMode) (uint32, error) {
+func (v *SensorBMP280) ReadPressureMult10Pa(i2c *i2c.Options, accuracy AccuracyMode) (uint32, error) {
 	ut, up, err := v.readUncompTempratureAndPressure(i2c, accuracy)
 	if err != nil {
 		return 0, err
@@ -409,7 +409,7 @@ func (v *SensorBMP280) ReadPressureMult10Pa(i2c *i2c.I2C, accuracy AccuracyMode)
 }
 
 // ReadHumidityMultQ2210 does nothing. Humidity function is not applicable for BMP280.
-func (v *SensorBMP280) ReadHumidityMultQ2210(i2c *i2c.I2C, accuracy AccuracyMode) (bool, uint32, error) {
+func (v *SensorBMP280) ReadHumidityMultQ2210(i2c *i2c.Options, accuracy AccuracyMode) (bool, uint32, error) {
 	// Not supported
 	return false, 0, nil
 }

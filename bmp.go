@@ -83,34 +83,34 @@ const (
 // to control and gather data.
 type SensorInterface interface {
 	// ReadSensorID read sensor identifier unuque for each sensor type.
-	ReadSensorID(i2c *i2c.I2C) (uint8, error)
+	ReadSensorID(i2c *i2c.Options) (uint8, error)
 	// ReadCoefficients read coefficient's block unique for each sensor.
-	ReadCoefficients(i2c *i2c.I2C) error
+	ReadCoefficients(i2c *i2c.Options) error
 	// IsValidCoefficients verify that coefficient values are not empty.
 	IsValidCoefficients() error
 	// Verify, that specific sensor can own signature identifier and
 	// return text description of this specific id.
 	RecognizeSignature(signature uint8) (string, error)
 	// IsBusy check via status register that sensor ready for data exchange.
-	IsBusy(i2c *i2c.I2C) (bool, error)
+	IsBusy(i2c *i2c.Options) (bool, error)
 	// Divide by 10 to get float temperature value in celsius.
-	ReadTemperatureMult100C(i2c *i2c.I2C, mode AccuracyMode) (temperature int32, erro error)
+	ReadTemperatureMult100C(i2c *i2c.Options, mode AccuracyMode) (temperature int32, erro error)
 	// Divide by 10 to get float preasure value in pascal.
-	ReadPressureMult10Pa(i2c *i2c.I2C, mode AccuracyMode) (pressure uint32, erro error)
+	ReadPressureMult10Pa(i2c *i2c.Options, mode AccuracyMode) (pressure uint32, erro error)
 	// Divide by 1024 to get float humidity value in range [0..100]%.
-	ReadHumidityMultQ2210(i2c *i2c.I2C, mode AccuracyMode) (supported bool, humidity uint32, erro error)
+	ReadHumidityMultQ2210(i2c *i2c.Options, mode AccuracyMode) (supported bool, humidity uint32, erro error)
 }
 
 // BMP represent both sensors BMP180 and BMP280
 // implementing same approach to control and gather data.
 type BMP struct {
 	sensorType SensorType
-	i2c        *i2c.I2C
+	i2c        *i2c.Options
 	bmp        SensorInterface
 }
 
 // NewBMP creates new sensor object.
-func NewBMP(sensorType SensorType, i2c *i2c.I2C) (*BMP, error) {
+func NewBMP(sensorType SensorType, i2c *i2c.Options) (*BMP, error) {
 	v := &BMP{sensorType: sensorType, i2c: i2c}
 	switch sensorType {
 	case BMP180:
