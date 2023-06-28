@@ -27,7 +27,7 @@ import (
 	"errors"
 	"fmt"
 
-	i2c "github.com/d2r2/go-i2c"
+	i2c "github.com/googolgl/go-i2c"
 )
 
 // BMP280 sensors memory map
